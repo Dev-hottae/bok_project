@@ -10,8 +10,8 @@ class ExampleSpider(scrapy.Spider):
     name = "navernews"
 
     search_word = '금리'
-    start_date =  datetime.datetime(year=2012, month=1, day=1)
-    end_date = datetime.datetime(year=2012, month=1, day=1)
+    start_date =  datetime.datetime(year=2012, month=5, day=1)
+    end_date = datetime.datetime(year=2012, month=5, day=5)
     cur_page = 1
     final_page = 0
 
@@ -84,52 +84,39 @@ class ExampleSpider(scrapy.Spider):
                 return
 
     # 네이버뉴스 redirection
-    def article_com(self, response): 
+    def article_com(self, response):
 
-        data = {
-            'date' : response.css('div.sponsor span.t11::text').get(),
+        yield {
+            'date' : re.search('[0-9]{4}[\.\-]?[0-9]{2}[\.\-]?[0-9]{2}', response.css('div.sponsor span.t11::text').get()).group(),
             'office' : response.css('div.press_logo a img::attr(title)').get(),
-            'text' : ' '.join(response.css('div#articleBodyContents::text').getall()).strip().replace('  ', '')
+            'text' : ' '.join(response.css('div#articleBodyContents::text').getall()).strip().replace('\n','').replace('\\','').replace('\"','').replace('\r','').replace('  ', '')
         }
-
-        yield self.data_to_csv(data)
 
     # 연합인포맥스 url에 ' ' 포함
     def article_yi(self, response): 
 
-        data = {
-            'date' : response.css('div.info-text ul.no-bullet li::text').getall()[1],
+        yield {
+            'date' : re.search('[0-9]{4}[\.\-]?[0-9]{2}[\.\-]?[0-9]{2}', response.css('div.info-text ul.no-bullet li::text').getall()[1]).group(),
             'office' : '연합인포맥스',
-            'text' : ' '.join(response.css('div#article-view-content-div::text').getall()).strip().replace('  ', '')
+            'text' : ' '.join(response.css('div#article-view-content-div::text').getall()).strip().replace('\n','').replace('\\','').replace('\"','').replace('\r','').replace('  ', '')
         }
 
-        yield self.data_to_csv(data)
         
     # 연합뉴스 url에 ' ' 포함
     def article_yn(self, response): 
 
-        data = {
-            'date' : response.css('p.update-time::text').get(),
+        yield {
+            'date' : re.search('[0-9]{4}[\.\-]?[0-9]{2}[\.\-]?[0-9]{2}', response.css('p.update-time::text').get()).group(),
             'office' : '연합뉴스',
-            'text': ' '.join(response.css('div.story-news::text').getall()).strip().replace('  ', '')
+            'text': ' '.join(response.css('div.story-news::text').getall()).strip().replace('\n','').replace('\\','').replace('\"','').replace('\r','').replace('  ', '')
         }
 
-        yield self.data_to_csv(data)
         
     # 이데일리 url에 ' ' 포함
     def article_ed(self, response): 
 
-        data = {
-            'date' : response.css('div.dates ul li p::text').getall()[0],
+        yield {
+            'date' : re.search('[0-9]{4}[\.\-]?[0-9]{2}[\.\-]?[0-9]{2}', response.css('div.dates ul li p::text').getall()[0]).group(),
             'office' : '이데일리',
-            'text' : ' '.join(response.css('div.news_body::text').getall()).strip().replace('  ', '')
+            'text' : ' '.join(response.css('div.news_body::text').getall()).strip().replace('\n','').replace('\\','').replace('\"','').replace('\r','').replace('  ', '')
         }
-
-        yield self.data_to_csv(data)
-        
-    def data_to_csv(self, data):
-
-        data_df = pd.DataFrame()
-
-
-        yield data
