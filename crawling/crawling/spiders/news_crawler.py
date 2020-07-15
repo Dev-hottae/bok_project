@@ -8,13 +8,14 @@ import tqdm
 
 
 class ExampleSpider(scrapy.Spider):
+
     name = "navernews"
 
     search_word = '금리'
 
     # 날짜 조정
-    start_date = datetime.datetime(year=2014, month=11, day=7)
-    end_date = datetime.datetime(year=2014, month=11, day=10)
+    start_date = datetime.datetime(year=2005, month=1, day=1)
+    end_date = datetime.datetime(year=2005, month=1, day=10)
     cur_page = 1
     final_page = 0
 
