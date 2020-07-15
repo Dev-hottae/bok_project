@@ -8,6 +8,11 @@
 git clone 'https://github.com/Dev-hottae/bok_project.git'
 ```
 
+## 0. requirements.txt 로 패키지 다운로드
+```
+pip install -r requirements.txt
+```
+
 ## 1. news_crawler 
 ### crawling 디렉토리로 이동
 ```
