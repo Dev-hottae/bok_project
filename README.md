@@ -8,7 +8,7 @@
 
 > 2. 분석 요약
 
-> https://drive.google.com/file/d/1lmoX_hoGgLMOGDpPyNVPHh4Od6QLRrMr/view?usp=sharing
+> https://drive.google.com/file/d/1w_tGNzVk3Q_RKzk-9VY-J6POkoUA3UXF/view?usp=sharing
 
 ### 프로젝트 내려받기
 ```python
