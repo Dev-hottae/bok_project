@@ -14,8 +14,8 @@ class ExampleSpider(scrapy.Spider):
     search_word = '금리'
 
     # 날짜 조정
-    start_date = datetime.datetime(year=2005, month=1, day=1)
-    end_date = datetime.datetime(year=2005, month=1, day=10)
+    start_date = datetime.datetime(year=2020, month=4, day=30)
+    end_date = datetime.datetime(year=2020, month=7, day=15)
     cur_page = 1
     final_page = 0
 
@@ -28,7 +28,7 @@ class ExampleSpider(scrapy.Spider):
         # 이번페이지 크롤링
         for news_container in response.css('ul.type01 > li'):
             # 타임 브레이커
-            # time.sleep(0.01)
+            time.sleep(0.01)
             office_name = news_container.css('span._sp_each_source::text').get()
             news_url = news_container.css('dl dt a::attr(href)').get()
 

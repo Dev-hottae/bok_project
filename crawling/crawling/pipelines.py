@@ -10,11 +10,11 @@ from scrapy.exporters import JsonItemExporter, CsvItemExporter
 import sys
 
 
-# CSV 파일로 저장하는 클래스
+# # CSV 파일로 저장하는 클래스
 class CsvPipeline(object):
     def __init__(self):
-        self.file = open("newsCrawl.csv", 'wb')
-        self.exporter = CsvItemExporter(self.file, encoding='utf-8')
+        self.file = open("newsCrawl.json", 'wb')
+        self.exporter = JsonItemExporter(self.file, encoding='utf-8')
         self.exporter.start_exporting()
 
     def close_spider(self, spider):
