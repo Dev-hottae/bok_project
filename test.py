@@ -69,7 +69,7 @@ import datetime
 # data1_df_del_notext = data_df.drop(idx_no_text)
 # data1_df_del_notext.to_json('news_2018_2020_edaily.json')
 
-# # 랜덤 데이터 추출
-# data_df = pd.read_json(r'C:\Users\student\PycharmProjects\bok_project\bok_project\news_2005_2017____yeonhap.json')
-# data50 = data_df.sample(n=50)
-# print(data50)
+# 랜덤 데이터 추출
+data_df = pd.read_json(r'C:\Users\student\Desktop\newsdata\news_2005_2017_infomax.json')
+data50 = data_df.sample(n=50)
+print(data50)
