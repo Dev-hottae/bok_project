@@ -1,7 +1,14 @@
 [한국은행 NLP 구현 프로젝트] bok_project
 =============
 > 관련참고 
+
+> 1. 텍스트 마이닝을 활용한 금융통화위원회 의사록 분석
+
 > https://www.bok.or.kr/portal/bbs/P0002454/view.do?nttId=10049321&menuNo=200431&pageIndex=2
+
+> 2. 분석 요약
+
+> https://drive.google.com/file/d/1w_tGNzVk3Q_RKzk-9VY-J6POkoUA3UXF/view?usp=sharing
 
 ### 프로젝트 내려받기
 ```python
