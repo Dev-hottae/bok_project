@@ -15,9 +15,14 @@
 git clone 'https://github.com/Dev-hottae/bok_project.git'
 ```
 
-## 0. requirements.txt 로 패키지 다운로드
+## 0. 패키지 다운로드
+### 0.1. requirements.txt
 ```
 pip install -r requirements.txt
+```
+### 0.2. eKoNLPy 설치
+```
+pip install ./eKoNLPy-master/.
 ```
 
 ## 1. news_crawler 
