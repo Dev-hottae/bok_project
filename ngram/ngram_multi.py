@@ -30,15 +30,15 @@ class ngram():
 
         mpck = MPCK()
         data_df = pd.DataFrame([], columns=['ngram'])
+
+        # 기존 데이터에 ngrams 칼럼 추가
         data['ngrams'] = ''
 
         ## UTF-8 Encoding 오류 -> 해당 파일로 들어가서 encoding='utf-8' 추가해줄 것
         for idx, text in tqdm(enumerate(data.text)):
             tokens = mpck.tokenize(text) # text 들어갈 곳
             ngrams = mpck.ngramize(tokens)
-            # 기존 데이터에 ngrams 칼럼 추가
-            # print(ngrams)
-            # print(data)
+
             data['ngrams'][idx] = ngrams
             for ngram in ngrams:
                 data_df = data_df.append([{'ngram': ngram}], ignore_index=True)
