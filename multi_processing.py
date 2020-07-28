@@ -19,8 +19,7 @@ class mp():
     # 데이터 4분할
     def data_divider(self, total_part, part_num):
         # 데이터 총 길이
-        # data_len = len(pd.read_json(self.data_dir))
-        data_len = 80
+        data_len = len(pd.read_json(self.data_dir))
         start_len = int(data_len * ((part_num-1)/total_part))
         fin_len = int(data_len * (part_num/total_part))
 
@@ -64,12 +63,3 @@ class multi_processing(multiprocessing.Process):
         self.target_class.execute(self.data, data_start, self.save_dir)
 
 
-
-# #########################
-# # 클래스 선언
-# if __name__ == "__main__":
-#
-#     data_dir = r"C:\Users\student\Desktop\newsdata\final_infomax\final_news_infomax_2018_2020.json"
-#     ng = ngram()
-#     mp = mp(ng, data_dir)
-#     mp.execute(process=3)
