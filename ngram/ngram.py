@@ -5,6 +5,7 @@ import pandas as pd
 # 패키지 임포트 오류 날 때
 # 1) Ctrl + Shift + P 혹은 Cmd + Shift + P 를 누릅니다.
 # 2) 창에 Python Select Interpreter 를 입력하고 선택합니다
+# .vscode 폴더 생성됨 (Git에는 추가하지 말 것)
 
 class ngram():
 
