@@ -30,9 +30,13 @@ class ngram():
     def make_ngram(self, text):
         mpck = MPCK()
         print('ngram {} 에 대한 작업 진행 중... '.format(text[:10]))
-        ## Encoding 'cp949' 오류 -> 해당 파일로 들어가서 encoding='utf-8' 추가해줄 것
+        # Encoding 'cp949' 오류 -> 해당 파일로 들어가서 encoding='utf-8' 추가해줄 것
         tokens = mpck.tokenize(text) # text 들어갈 곳
         ngrams = mpck.ngramize(tokens)
+        
+        # 빈 ngram 처리, dropna 사용위함
+        if ngrams == []:
+            ngrams = None
         return ngrams
     
     def split_data(self, datas):
