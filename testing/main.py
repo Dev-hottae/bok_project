@@ -68,11 +68,11 @@ for dc in date_count:
         test_data['tone'] = list(map(tone_sent, test_data['ngram']))
         tone_data = test_data.dropna()
         # 0은 중립
-        test_data['HD'] = list(map(lambda i : 'H' if i > 0 else 'D' if i < 0 else np.nan, test_data['tone']))
-        test_data.dropna(inplace=True)
-        test_data['H'] = list(map(lambda i : 1 if i == 'H' else 0, test_data['HD']))
-        test_data['D'] = list(map(lambda i : 1 if i == 'D' else 0, test_data['HD']))
-        final_tone = test_data.groupby('date').sum()[['H','D']]
+        tone_data['HD'] = list(map(lambda i : 'H' if i > 0 else 'D' if i < 0 else np.nan, tone_data['tone']))
+        tone_data.dropna(inplace=True)
+        tone_data['H'] = list(map(lambda i : 1 if i == 'H' else 0, tone_data['HD']))
+        tone_data['D'] = list(map(lambda i : 1 if i == 'D' else 0, tone_data['HD']))
+        final_tone = tone_data.groupby('date').sum()[['H','D']]
         final_tone['tone'] = (final_tone['H'] - final_tone['D']) / (final_tone['H'] + final_tone['D'])
         final_tone['rate'] = sr_df['rate']
 
