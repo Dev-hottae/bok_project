@@ -82,10 +82,12 @@ for d in date_count:
         nbc = BOK.NBC()
         nbc.add_data(train_data)
         nbc.bagging(train_data, 30)
-        nbc.df = nbc.df[nbc.df[[1,0,-1]].sum(axis=1) > 15] # 빈도 수 15개 미만 NGRAM 자르기
+        nbc.df = nbc.df[nbc.df[[1,0,-1]].sum(axis=1) > 15] # 빈도 수 15개 이하 NGRAM 자르기
 
         hawkish = nbc.df[nbc.df['score'] >= 1.3].index
         dovish = nbc.df[nbc.df['score'] <= 10/13].index
+
+        print(len(hawkish), len(dovish))
 
         # Tone 계산 (일자 Ngram 합친 문서 Tone 계산 1회)
         final_test['tone'] = list(map(tone_sent, final_test['ngram']))
@@ -93,12 +95,11 @@ for d in date_count:
         tone_data['rate'] = sr_df['rate']
 
         # 상관분석
-        corr = tone_data[['tone','rate']].corr(method = 'pearson')
-        call_corr.append([d, r, corr])
-        print('Date Range:', d, "Rate Limit:", r, 'Test 개수:', len(tone_data))
-        print(corr)
+        corr = tone_data['tone'].corr(tone_data['rate'], method = 'pearson')
+        call_corr.append([d, r, len(tone_data), corr])
+        print('Date Range:', d, "Rate Limit:", r, '\nTest 개수:', len(tone_data), 'corr', corr)
         print()
 
 
-pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'Corr']).to_json('doc_call_corr.json')
+pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'doc_count', 'Corr']).to_json('doc_call_corr.json')
 

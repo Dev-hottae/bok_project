@@ -4,6 +4,7 @@ import itertools
 import datetime
 import re
 import numpy as np 
+import copy
 
 # 문장 -> 문서
 
@@ -28,14 +29,13 @@ def tone_sent(x):
             a += 1
         elif ngram in dovish:
             b += 1
-    if a+b < ngram_limit:
-        return np.nan
+    # if a+b < ngram_limit:
+    #     return np.nan
     try:
         return (a-b) / (a+b)
     except:
         return np.nan
 
-corr_result = []
 # 기준 금리 데이터, 경로 설정
 sr_df = pd.read_json('testing/standard_rate.json').set_index('date')
 
@@ -46,16 +46,16 @@ test_data['date'] = list(map(lambda i : i.date(), test_data['date']))
 test_data = test_data[test_data['date'] <= datetime.date(2017,12,31)]
 
 # 금리 Raw 데이터에서 기간, 금리 변동 별로 Labeling 하면서 최적값 탐색
-call_datas = pd.read_json('testing/rate_data/call_raw.json')
-date_count = range(2, 31)
+call_datas = pd.read_json('testing/rate_data/labeled_cd_rate.json').set_index('date')
+# date_count = range(-30, 31)
+date_count = [i for i in range(-30,31) if i not in [-1,0,1]]
 rate_limit = [0.01, 0.02, 0.03, 0.04, 0.05]
-
 call_corr = []
 for dc in date_count:
     for rl in rate_limit:
         print('현재 진행 날짜 :', dc,'\n현재 진행 Rate_Limit :', rl)
         train_data['ud'] = BOK.rate_label(call_datas, dc, rl)['ud']
-        
+
         nbc = BOK.NBC()
         nbc.add_data(train_data)
         nbc.bagging(train_data, 30)
@@ -63,24 +63,28 @@ for dc in date_count:
 
         hawkish = nbc.df[nbc.df['score'] >= 1.3].index
         dovish = nbc.df[nbc.df['score'] <= 10/13].index
+        print(len(hawkish), len(dovish))
 
         # Tone 계산 (문장 -> 문서)
         test_data['tone'] = list(map(tone_sent, test_data['ngram']))
-        tone_data = test_data.dropna()
+        
+        tone_data = copy.deepcopy(test_data.dropna())
         # 0은 중립
         tone_data['HD'] = list(map(lambda i : 'H' if i > 0 else 'D' if i < 0 else np.nan, tone_data['tone']))
         tone_data.dropna(inplace=True)
         tone_data['H'] = list(map(lambda i : 1 if i == 'H' else 0, tone_data['HD']))
         tone_data['D'] = list(map(lambda i : 1 if i == 'D' else 0, tone_data['HD']))
-        final_tone = tone_data.groupby('date').sum()[['H','D']]
+        final_tone = copy.deepcopy(tone_data.groupby('date').sum()[['H','D']])
+        final_tone = final_tone[final_tone['H'] + final_tone['D'] > 5]
         final_tone['tone'] = (final_tone['H'] - final_tone['D']) / (final_tone['H'] + final_tone['D'])
         final_tone['rate'] = sr_df['rate']
 
         # 상관분석
         corr = final_tone['tone'].corr(final_tone['rate'], method = 'pearson')
-        call_corr.append([dc, rl, corr])
+        call_corr.append([dc, rl, len(final_tone), corr])
         print('Date Range:', dc, "Rate Limit:", rl, '\nTest 개수:', len(final_tone), 'Corr :', corr)
+        if corr > 0.60:
+            pd.DataFrame([hawkish, dovish]).to_json('testing/dictionary/hawkish_dovish_{}_{}.json'.format(dc, rl))
         print()
 
-pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'Corr']).to_json('sent_doc_call_corr.json')
-
+pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'doc_count', 'Corr']).to_json('testing/results/final_corr.json')

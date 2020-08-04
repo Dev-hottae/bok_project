@@ -61,11 +61,26 @@ class NBC():
         self.df['count'] = 0
         for i in range(k):
             self.polarity_score(self.count_vec(train_data.sample(frac=0.9)))
-        self.df['score'] = self.df['score'] / self.df['count']
-        return self.df
 
+        
+        self.df['score'] = self.df['score'] / self.df['count']
+        return self.df[self.df['count'] != 0]
+
+# -day에도 활용 가능하게
 def rate_label(datas, dc = 30, rl = 0.03):
-        temp = []
+    temp = []
+
+    if dc < 0:
+        for i in range(-dc, len(datas)):
+            rate_change = float(datas['rate'][i]) - float(datas['rate'][i+dc])
+            if rate_change >= rl:
+                temp.append(1)
+            elif rate_change <= -rl:
+                temp.append(-1)
+            else:
+                temp.append(0)
+        new_data = datas.iloc[-dc:].reset_index()
+    else:
         for i in range(len(datas)-dc):
             rate_change = float(datas['rate'][i+dc]) - float(datas['rate'][i])
             if rate_change >= rl:
@@ -74,14 +89,12 @@ def rate_label(datas, dc = 30, rl = 0.03):
                 temp.append(-1)
             else:
                 temp.append(0)
-
         new_data = datas.iloc[:-dc].reset_index()
-        new_data['ud'] = temp
-        # new_data.reset_index(inplace=True)
-        new_data.columns = ['date', 'rate', 'ud']
-        new_data['date'] = list(map(lambda i : i.date(), new_data['date']))
-        return new_data.set_index('date')
-        # new_data.to_json('call_{}_{}.json'.format(str(dc), str(rl)))
+    new_data['ud'] = temp
+    # new_data.to_json('call_{}_{}.json'.format(str(dc), str(rl)))
+    new_data.columns = ['date', 'rate', 'ud']
+    new_data['date'] = list(map(lambda i : i.date(), new_data['date']))
+    return new_data.set_index('date')
 
     
 # class subpre():
@@ -90,3 +103,4 @@ def rate_label(datas, dc = 30, rl = 0.03):
 #         return
 
     
+
