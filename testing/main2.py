@@ -1,4 +1,4 @@
-import BOK
+from BOKpack import BOK
 import pandas as pd
 import itertools
 import datetime

@@ -1,4 +1,4 @@
-import BOK
+from BOKpack import BOK
 import pandas as pd
 import itertools
 import datetime
@@ -8,19 +8,15 @@ import copy
 
 # 문장 -> 문서
 
-# 학습 DATA 불러오기
-# ※파일 위치 지정
-train_data = pd.read_json('testing/final_ngram_comma.json')
-train_data['date'] = list(map(lambda i : i.date(), train_data['date']))
-train_data.set_index('date', inplace=True)
-# 학습 기간 설정
-train_data = train_data.iloc[(train_data.index >= datetime.date(2005,5,1)) & 
-                            (train_data.index <= datetime.date(2017,12,31))]
-# 클래스 사용 위해 데이터 분리
-train_data['ngram'] = list(map(lambda i : i.split(','), train_data['ngram']))
+# Load 데이터
+test = BOK.Testing()
+
+# 상위 폴더 경로 설정
+train_data, call_data, test_data, sr_df = test.load_datas('testing')
 
 # 일자 별 유의미한 Ngram 제한, 개수가 너무 적을 경우 해당 날짜 이상치 발생 방지
-ngram_limit = 5
+# ngram_limit = 5
+# 안 씀, tone 문장 수로 확인
 def tone_sent(x):
     a = 0
     b = 0
@@ -36,25 +32,15 @@ def tone_sent(x):
     except:
         return np.nan
 
-# 기준 금리 데이터, 경로 설정
-sr_df = pd.read_json('testing/standard_rate.json').set_index('date')
-
-# Load Test Data, 날짜 하나로 NGRAM 합침
-test_data = pd.read_json('testing/test_ngram_datas.json')
-test_data['ngram'] = list(map(lambda i : i.split(','), test_data['ngram']))
-test_data['date'] = list(map(lambda i : i.date(), test_data['date']))
-test_data = test_data[test_data['date'] <= datetime.date(2017,12,31)]
-
 # 금리 Raw 데이터에서 기간, 금리 변동 별로 Labeling 하면서 최적값 탐색
-call_datas = pd.read_json('testing/rate_data/labeled_cd_rate.json').set_index('date')
-# date_count = range(-30, 31)
 date_count = [i for i in range(-30,31) if i not in [-1,0,1]]
 rate_limit = [0.01, 0.02, 0.03, 0.04, 0.05]
 call_corr = []
+
 for dc in date_count:
     for rl in rate_limit:
         print('현재 진행 날짜 :', dc,'\n현재 진행 Rate_Limit :', rl)
-        train_data['ud'] = BOK.rate_label(call_datas, dc, rl)['ud']
+        train_data['ud'] = BOK.rate_label(call_data, dc, rl)['ud']
 
         nbc = BOK.NBC()
         nbc.add_data(train_data)
@@ -75,7 +61,10 @@ for dc in date_count:
         tone_data['H'] = list(map(lambda i : 1 if i == 'H' else 0, tone_data['HD']))
         tone_data['D'] = list(map(lambda i : 1 if i == 'D' else 0, tone_data['HD']))
         final_tone = copy.deepcopy(tone_data.groupby('date').sum()[['H','D']])
-        final_tone = final_tone[final_tone['H'] + final_tone['D'] > 5]
+        # 남은 문장이 sl개를 넘는 BOK 문서만 계산 (이상치 제거)
+        # 10개 이하 자르면 160개 정도 나오는 것을 확인
+        sl = 10
+        final_tone = final_tone[final_tone['H'] + final_tone['D'] > sl]
         final_tone['tone'] = (final_tone['H'] - final_tone['D']) / (final_tone['H'] + final_tone['D'])
         final_tone['rate'] = sr_df['rate']
 
@@ -83,8 +72,11 @@ for dc in date_count:
         corr = final_tone['tone'].corr(final_tone['rate'], method = 'pearson')
         call_corr.append([dc, rl, len(final_tone), corr])
         print('Date Range:', dc, "Rate Limit:", rl, '\nTest 개수:', len(final_tone), 'Corr :', corr)
-        if corr > 0.60:
+
+        # Hawkish, Dovish 사전 추출
+        if corr > 0.68 or corr < 0.3:
             pd.DataFrame([hawkish, dovish]).to_json('testing/dictionary/hawkish_dovish_{}_{}.json'.format(dc, rl))
         print()
 
+# 최종 상관관계 데이터 json 추출
 pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'doc_count', 'Corr']).to_json('testing/results/final_corr.json')

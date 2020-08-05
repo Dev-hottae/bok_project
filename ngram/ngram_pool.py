@@ -1,4 +1,4 @@
-import ngram
+from BOKpack import BOK
 from multiprocessing import Pool
 import re
 import time
@@ -6,10 +6,12 @@ import time
 doc_num = 0
 
 if __name__ == '__main__':
-    ng = ngram.ngram()
-    fl = ng.search('ngram\datas')
+    js = BOK.JsonSearch()
+    fl = js.search('ngram\datas')
+    ng = BOK.Ngram()
+    
     for doc_num in range(len(fl)):
-        datas = ng.select_file(doc_num)
+        datas = js.select_file(doc_num)
 
         start_time = time.time()
         pool = Pool(processes=4)
@@ -20,7 +22,7 @@ if __name__ == '__main__':
         datas['ngram'] = result
 
         print('ngram 완료 ! 총 걸린 시간 %s seconds'%(int(time.time()- start_time)))
-        temp = re.search('(?<=[s]\\\\).*(?=\.json)', fl[doc_num])
+        temp = re.search('[^\\]*(?=\.json)', fl[doc_num])
         fn = temp.group()
 
         datas[['date', text_column, 'ngram']].to_json('{}_ngram.json'.format(fn))
