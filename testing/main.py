@@ -32,11 +32,11 @@ def tone_sent(x):
     except:
         return np.nan
 
+call_corr = []
+
 # 금리 Raw 데이터에서 기간, 금리 변동 별로 Labeling 하면서 최적값 탐색
 date_count = [i for i in range(-30,31) if i not in [-1,0,1]]
 rate_limit = [0.01, 0.02, 0.03, 0.04, 0.05]
-call_corr = []
-
 for dc in date_count:
     for rl in rate_limit:
         print('현재 진행 날짜 :', dc,'\n현재 진행 Rate_Limit :', rl)
@@ -80,3 +80,28 @@ for dc in date_count:
 
 # 최종 상관관계 데이터 json 추출
 pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'doc_count', 'Corr']).to_json('testing/results/final_corr.json')
+
+
+# Plot, Scaler
+# import matplotlib.pyplot as plt
+# import pandas as pd
+# from sklearn import preprocessing
+
+# Scaler
+# MaxAbsScaler RobustScaler StandardScaler MinMaxScaler
+# x = final_tone['rate'].values.reshape(-1, 1) #returns a numpy array
+# scaler = preprocessing.MinMaxScaler()
+# x_scaled = scaler.fit_transform(x)
+# final_tone['rate'] = x_scaled
+
+# x = final_tone['tone'].values.reshape(-1, 1) #returns a numpy array
+# scaler = preprocessing.MinMaxScaler()
+# x_scaled = scaler.fit_transform(x)
+# final_tone['tone'] = x_scaled
+
+# plt.plot(final_tone['tone'])
+# plt.plot(final_tone['rate'])
+# plt.rcParams['font.family'] = 'DejaVu Sans'
+# plt.title('Date Range : {}, Limit : {}'.format(dc, rl))
+# plt.axis('off')
+# plt.show()

@@ -5,18 +5,13 @@ import datetime
 import re
 import numpy as np 
 
-# 합친 뒤 Tone 문서
+# 문서 Ngram 합친 뒤 Tone 측정
 
-# 학습 DATA 불러오기
-# ※파일 위치 지정
-train_data = pd.read_json('testing/final_ngram_comma.json')
-train_data['date'] = list(map(lambda i : i.date(), train_data['date']))
-train_data.set_index('date', inplace=True)
-# 학습 기간 설정
-train_data = train_data.iloc[(train_data.index >= datetime.date(2005,5,1)) & 
-                            (train_data.index <= datetime.date(2017,12,31))]
-# 클래스 사용 위해 데이터 분리
-train_data['ngram'] = list(map(lambda i : i.split(','), train_data['ngram']))
+# Load 데이터
+test = BOK.Testing()
+
+# 상위 폴더 경로 설정
+train_data, call_data, test_data, sr_df = test.load_datas('testing')
 
 # n그램 개수 counting
 def useful_ngram(x):
@@ -66,18 +61,14 @@ def tone_sent(x):
 
 
 call_corr = []
-# 기준 금리 데이터, 경로 설정
-sr_df = pd.read_json('testing/standard_rate.json').set_index('date')
 
-# 금리 Raw 데이터에서 기간, 금리 변동 별로 Labeling 하면서 최적값 탐색
-call_datas = pd.read_json('testing/rate_data/call_raw.json')
 date_count = range(2, 31)
 rate_limit = [0.01, 0.02, 0.03, 0.04, 0.05]
 
 for d in date_count:
     for r in rate_limit:
         print('현재 진행 날짜 :', d,'\n현재 진행 Rate_Limit :', r)
-        train_data['ud'] = BOK.rate_label(call_datas, d, r)['ud']
+        train_data['ud'] = BOK.rate_label(call_data, d, r)['ud']
         
         nbc = BOK.NBC()
         nbc.add_data(train_data)
@@ -102,4 +93,3 @@ for d in date_count:
 
 
 pd.DataFrame(call_corr, columns = ['Date_Range', 'Rate_Limit', 'doc_count', 'Corr']).to_json('doc_call_corr.json')
-

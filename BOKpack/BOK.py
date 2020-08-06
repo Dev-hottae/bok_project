@@ -6,6 +6,8 @@ import copy
 import datetime
 from ekonlpy.sentiment import MPCK
 import os
+import requests
+from bs4 import BeautifulSoup
 
 # 패키지 임포트 오류 날 때
 # 1) Ctrl + Shift + P 혹은 Cmd + Shift + P 를 누릅니다.
@@ -179,11 +181,59 @@ class Testing():
         # Load Rate Data
         call_data = pd.read_json(test_dir + '/rate_data/labeled_cd_rate.json').set_index('date')
 
-
         return train_data, call_data, test_data, sr_df
 
-    
-# 라벨링, 기타 전처리용 클래스    
+
+# Rate Crawling
+class RateCrawl():
+
+    def crawl(self, rate_number = 0):
+        start_page = 1
+        end_page = 544
+        page_number = start_page
+        date_list = []
+        rate_list = []
+        # 콜금리 0번, CD금리 1번, 국고채3년 2번, 회사채3년 3번
+        
+        URLs = ['https://finance.naver.com/marketindex/interestDailyQuote.nhn?marketindexCd=IRR_CALL&page=',
+                'https://finance.naver.com/marketindex/interestDailyQuote.nhn?marketindexCd=IRR_CD91&page=',
+                'https://finance.naver.com/marketindex/interestDailyQuote.nhn?marketindexCd=IRR_GOVT03Y&page=',
+                'https://finance.naver.com/marketindex/interestDailyQuote.nhn?marketindexCd=IRR_CORP03Y&page='
+        ]
+
+        while True:
+            r = requests.get(URLs[rate_number] + str(page_number))
+            sp = BeautifulSoup(r.text,'html.parser')
+            results = sp.select('tr')[1:]
+            for result in results:
+                date_list.append(result.select_one('td.date').text.strip())
+                rate_list.append(result.select_one('td.num').text.strip())
+
+            page_number += 1
+            if page_number > end_page:
+                break
+
+        call_df = pd.DataFrame(list(zip(date_list,rate_list)), columns = ['date','rate'])
+        call_df['date'] = list(map(lambda i : datetime.datetime.strptime(i, '%Y.%m.%d'), list(call_df['date'])))
+        return call_df
+
+    def filldate(self, rate_df):
+        # 연속적인 날짜로 채우기
+        start_date = rate_df['date'][len(rate_df)-1]
+        end_date = rate_df['date'][0]
+        print(start_date, end_date)
+        day_range = (end_date - start_date).days
+        temp = []
+        for i in range(day_range):
+            temp.append((start_date + datetime.timedelta(i)).date())
+
+        call_final = pd.DataFrame(temp, columns = ['date']).set_index('date', inplace = True)
+        call_final['rate'] = rate_df.set_index('date').rate
+        call_final.sort_index(inplace=True)
+        call_final.fillna(method='pad', inplace=True)
+        return call_final
+
+# 라벨링, 기타 전처리용 클래스
 # class subpre():
 #     # 금리 라벨링 함수
 #     def __init__(self):
